@@ -1,13 +1,15 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
-import { SessionProvider } from './context/SessionContext';
-import './styles/globals.css';
+import { AuthProvider } from './contexts/authContext';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <SessionProvider>
-      <App />
-    </SessionProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </BrowserRouter>
   </React.StrictMode>
 );

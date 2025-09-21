@@ -1,65 +1,46 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useSession } from './context/SessionContext';
+import React, { useContext } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { AuthContext } from './contexts/authContext';
 
-// Auth
-import Login from './pages/auth/Login';
+/* pages */
+import Login from './pages/Login';
+import ClientDashboard from './pages/cliente/Dashboard';
+import ClientAuctions from './pages/cliente/auctions';
+import ClientAuctionDetail from './pages/cliente/AuctionDetail';
+import ClientPayments from './pages/cliente/Payments';
+import ClientTransactions from './pages/cliente/Transactions';
 
-// User
-import UserLayout from './components/layout/UserLayout';
-import UserDashboard from './pages/user/Dashboard';
-import WalletPage from './pages/user/WalletPage';
-import Subastas from './pages/user/Subastas';
-import AuctionDetail from './pages/user/AuctionDetail';
-import RechargePage from './pages/user/Recharge';
-
-// Admin
-import AdminLayout from './components/layout/AdminLayout';
 import AdminDashboard from './pages/admin/Dashboard';
-import Movements from './pages/admin/Movements';
-import ValidateMovements from './pages/admin/ValidateMovements';
-import UsersPage from './pages/admin/Users';
+import AdminUsers from './pages/admin/Users';
 import AdminAuctions from './pages/admin/Auctions';
+import AdminTransactions from './pages/admin/Transactions';
 
-function RequireSession({ children, role }) {
-  const { session } = useSession();
-  if (!session) return <Navigate to="/login" replace />;
-  if (role && session.role !== role) {
-    return <Navigate to={session.role === 'ADMIN' ? '/admin/dashboard' : '/user/dashboard'} replace />;
-  }
+function PrivateRoute({ children, role }) {
+  const { user } = useContext(AuthContext);
+  if (!user) return <Navigate to="/" replace />;
+  if (role && user.role !== role) return <Navigate to="/" replace />;
   return children;
 }
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
+    <Routes>
+      <Route path="/" element={<Login />} />
 
-        <Route path="/user/*" element={
-          <RequireSession role="USER"><UserLayout/></RequireSession>
-        }>
-          <Route index element={<UserDashboard/>} />
-          <Route path="dashboard" element={<UserDashboard/>} />
-          <Route path="wallet" element={<WalletPage/>} />
-          <Route path="subastas" element={<Subastas/>} />
-          <Route path="subastas/:id" element={<AuctionDetail/>} />
-          <Route path="recharge" element={<RechargePage/>} />
-        </Route>
+      {/* cliente */}
+      <Route path="/cliente/dashboard" element={<PrivateRoute role={"USER"}><ClientDashboard/></PrivateRoute>} />
+      <Route path="/cliente/auctions" element={<PrivateRoute role={"USER"}><ClientAuctions/></PrivateRoute>} />
+      <Route path="/cliente/auctions/:id" element={<PrivateRoute role={"USER"}><ClientAuctionDetail/></PrivateRoute>} />
+      <Route path="/cliente/payments" element={<PrivateRoute role={"USER"}><ClientPayments/></PrivateRoute>} />
+      <Route path="/cliente/transactions" element={<PrivateRoute role={"USER"}><ClientTransactions/></PrivateRoute>} />
 
-        <Route path="/admin/*" element={
-          <RequireSession role="ADMIN"><AdminLayout/></RequireSession>
-        }>
-          <Route index element={<AdminDashboard/>} />
-          <Route path="dashboard" element={<AdminDashboard/>} />
-          <Route path="movements" element={<Movements/>} />
-          <Route path="validate" element={<ValidateMovements/>} />
-          <Route path="users" element={<UsersPage/>} />
-          <Route path="auctions" element={<AdminAuctions/>} />
-        </Route>
+      {/* admin */}
+      <Route path="/admin/dashboard" element={<PrivateRoute role={"ADMIN"}><AdminDashboard/></PrivateRoute>} />
+      <Route path="/admin/users" element={<PrivateRoute role={"ADMIN"}><AdminUsers/></PrivateRoute>} />
+      <Route path="/admin/auctions" element={<PrivateRoute role={"ADMIN"}><AdminAuctions/></PrivateRoute>} />
+      <Route path="/admin/transactions" element={<PrivateRoute role={"ADMIN"}><AdminTransactions/></PrivateRoute>} />
 
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </BrowserRouter>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
